@@ -1,49 +1,113 @@
-import loginLogic from  "../../src/logic/login.logic.js";
-import { expect, jest } from "@jest/globals";
-import { BusinessError } from "../../src/helpers/error.helper.js";
+import login from "../../src/logic/login.logic.js";
 import UserModel from "../../src/models/user.model.js";
+import { HTTPError } from "../../src/helpers/error.helper.js";
+import loginMessages from "../../src/messages/login.messages.js";
 
-describe("Login Logic: Check text unit test", () => {
+jest.mock("../../src/models/user.model.js");
+jest.mock("../../src/helpers/jwt.helper.js");
 
-	it("[Error]When the user is blocked", async () => {
-		const input = {
+describe("login.logic", () => {
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
+
+	it("[ERROR] user is blocked", async () => {
+	const user = {
+		_id: "user-id",
+		email: "test@example.com",
+		password: "password",
+		blocked: true,
+		verified: true,
+		comparePassword: jest.fn().mockResolvedValue(true),
+	};
+
+	const HttpErrror = new HTTPError({
+		name: loginMessages.blocked.name,
+		msg: loginMessages.blocked.message,
+		code: 403,
+	});
+	UserModel.findOne.mockReturnValue({
+		select: jest.fn().mockReturnValue({
+		exec: jest.fn().mockResolvedValue(user),
+		}),
+	});
+
+	return login({ email: "test@example.com", password: "password" }).catch((error) => {
+		expect(error).toEqual(HttpErrror);
+	});
+
+	});
+
+	it("[ERROR] user no found", async () => {
+		const HttpErrror = new HTTPError({
+				name: loginMessages.invalidCredentials.name,
+				msg: loginMessages.invalidCredentials.message,
+				code: 400,
+		});
+		UserModel.findOne.mockReturnValue({
+			select: jest.fn().mockReturnValue({
+			exec: jest.fn().mockResolvedValue(false),
+			}),
+		});
+
+		return login({ email: "test@example.com", password: "password" }).catch((error) => {
+			expect(error).toEqual(HttpErrror);
+		});	
+	
+	});
+
+	it("[ERROR] invalid password", async () => {
+
+		const user = {
+			_id: "user-id",
 			email: "test@example.com",
-			password: "12345",
+			password: "password",
+			blocked: false,
+			verified: true,
+			comparePassword: jest.fn().mockResolvedValue(false),
 		};
-		try {
-			await loginLogic(input);
-		} catch (error) {
-			expect(error.msg).toEqual("type is not available");
-			expect(error).toBeInstanceOf(BusinessError);
-			expect(error.name).toEqual("type error");
-		}
+
+		const HttpErrror = new HTTPError({
+			name: loginMessages.invalidCredentials.name,
+			msg: loginMessages.invalidCredentials.message,
+			code: 400,
+		});
+		UserModel.findOne.mockReturnValue({
+			select: jest.fn().mockReturnValue({
+			exec: jest.fn().mockResolvedValue(user),
+			}),
+		});
+
+		return login({ email: "test@example.com", password: "password" }).catch((error) => {
+			expect(error).toEqual(HttpErrror);
+			expoct(user.comparePassword).toHaveBeenCalledWith("password");
+			
+		});	
+	
 	});
 
-	it("[Error]When the username and password does not exist in the selector, it should throw an error", async () => {
-		const input = {
-			email: "",
-			password: "",
-		};
-		try {
-			await loginLogic(input);
-		} catch (error) {
-			expect(error.msg).toEqual("type is not available");
-			expect(error).toBeInstanceOf(BusinessError);
-			expect(error.name).toEqual("type error");
-		}
-	});
+	it("[Susseful] user found", async () => {
 
-	it("[SUCCESS] Should return true when the user is a valid", async () => {
-
-		const input = {
+		const user = {
+			_id: "user-id",
 			email: "test@example.com",
-			password: "12345",
+			password: "password",
+			blocked: false,
+			verified: true,
+			comparePassword: jest.fn().mockResolvedValue(true),
 		};
 
-		const result = await loginLogic(input);
+		UserModel.findOne.mockReturnValue({
+			select: jest.fn().mockReturnValue({
+			exec: jest.fn().mockResolvedValue(user),
+			}),
+		});
+		return login({ email: "test@example.com", password: "password" }).catch((error) => {
+			expect(UserModel.findOne).toEqual(user);
+			expect(UserModel.findOne._id).toEqual(user._id);
+			expect(UserModel.findOne.verified).toEqual(user.verified);
+		});	
 
-		expect(result).toEqual(true);
+	
 	});
-
-
 });
