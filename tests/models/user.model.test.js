@@ -3,22 +3,15 @@ import userModel from "../../src/models/user.model";
 import { connectDB }  from "../../src/config/mongo";
 
 describe("Models: Check User model unit test", () => {
-	const checkUserModelStub = jest.spyOn(userModel, "create");
-
-	it("[SUCCESS] Create User with stub", async () => {
-		checkUserModelStub.mockReturnValue();
-		userModel.create({name: "asd",email: "texto",password:"12345",  rut:"12345"});
-		expect(checkUserModelStub).toBeCalled();
-	});
+	const checkUserModelStub = jest.spyOn(userModel, "default");
 
 	it("[SUCCESS] Create User successful", async () => {
-		connectDB("mongodb://127.0.0.1/auth-service-local");
-		checkTextModelStub.mockRestore();
-		CheckTextModel.save({ name: "asd",email: "texto",password:"12345",  rut:"12345"});
+		await connectDB("mongodb://127.0.0.1/auth-service-local");
+		checkUserModelStub.mockRestore();
+		userModel.save({ name: "asd",email: "texto",password:"12345",  rut:"12345"});
 
-		const result = await CheckTextModel.findOne({
-			type: "asd",
-			text: "texto",
+		const result = await userModel.findOne({
+			name: "asd",email: "texto",password:"12345",  rut:"12345"
 		}).exec();
 		expect(result).not.toBeNull();
 	});

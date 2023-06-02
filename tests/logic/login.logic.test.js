@@ -6,14 +6,14 @@ import loginMessages from "../../src/messages/login.messages.js";
 jest.mock("../../src/models/user.model.js");
 jest.mock("../../src/helpers/jwt.helper.js");
 
-describe("login.logic", () => {
+describe("login logic", () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 	});
 
 	it("[ERROR] user is blocked", async () => {
 	const user = {
-		_id: "user-id",
+		_id: "id",
 		email: "test@example.com",
 		password: "password",
 		blocked: true,
@@ -59,7 +59,7 @@ describe("login.logic", () => {
 	it("[ERROR] invalid password", async () => {
 
 		const user = {
-			_id: "user-id",
+			_id: "id",
 			email: "test@example.com",
 			password: "password",
 			blocked: false,
@@ -80,7 +80,7 @@ describe("login.logic", () => {
 
 		return login({ email: "test@example.com", password: "password" }).catch((error) => {
 			expect(error).toEqual(HttpErrror);
-			expoct(user.comparePassword).toHaveBeenCalledWith("password");
+			expect(user.comparePassword).toHaveBeenCalledWith("password");
 			
 		});	
 	
@@ -89,7 +89,7 @@ describe("login.logic", () => {
 	it("[Susseful] user found", async () => {
 
 		const user = {
-			_id: "user-id",
+			_id: "id",
 			email: "test@example.com",
 			password: "password",
 			blocked: false,

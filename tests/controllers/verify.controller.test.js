@@ -33,7 +33,6 @@ describe("Controller: verify", () => {
 		await verify(req, res);
 		expect(res.status).toBeCalledWith(400);
 		expect(res.json).toBeCalledWith({ error: { ...httpError } });
-		//expect(verifyLogicStub).not.toBeCalled();
 
 	});
 
